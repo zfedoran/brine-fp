@@ -1,0 +1,22 @@
+[package]
+name = "brine-fp"
+version = "0.1.0"
+edition = "2021"
+description = "192-bit fixed-point math library with logarithmic and exponential functions. Designed for blockchain, scientific, and financial applications."
+license = "AGPL-3.0"
+repository = "https://github.com/zfedoran/brine-fp"
+keywords = ["fixed-point", "math", "no-std", "log", "exp"]
+categories = ["no-std", "mathematics", "cryptography", "wasm"]
+
+[lib]
+name = "brine_fp"
+path = "src/lib.rs"
+crate-type = ["lib"]
+
+[features]
+default = ["std"]
+std = ["uint/std"]
+
+[dependencies]
+uint = { version = "0.9", default-features = false }
+
