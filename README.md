@@ -1,5 +1,12 @@
 # brine-fp
 
+[license-image]: https://img.shields.io/badge/license-AGPL3-blue.svg?style=flat
+![license][license-image]
+[![crates.io](https://img.shields.io/crates/v/brine-fp.svg?style=flat)](https://crates.io/crates/brine-fp)
+
+
+![image](https://github.com/user-attachments/assets/587bebdc-95e6-430a-85c6-b84ccfc36bc2)
+
 `brine-fp` is a 192-bit fixed-point math library built for high-precision, deterministic computation in constrained environments like the Solana SVM. It provides arithmetic, exponentiation, logarithms, and powers using `u192`-based representations, and is optimized for low compute unit (CU) usage on-chain.
 
 ---
