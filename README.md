@@ -40,7 +40,7 @@ These values are measured inside the Solana SVM (via test programs).
 use brine_fp::UnsignedNumeric;
 
 // Construct a fixed-point number: 5.0
-let five = UnsignedNumeric::new(5).unwrap();
+let five = UnsignedNumeric::new(5);
 
 // Compute its exponential
 let result = five.signed().exp().unwrap();
