@@ -16,6 +16,7 @@ crate-type = ["lib"]
 [features]
 default = ["std"]
 std = ["uint/std"]
+256-bit = []
 
 [dependencies]
 uint = { version = "0.9", default-features = false }
