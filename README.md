@@ -4,9 +4,6 @@
 ![license][license-image]
 [![crates.io](https://img.shields.io/crates/v/brine-fp.svg?style=flat)](https://crates.io/crates/brine-fp)
 
-
-![image](https://github.com/user-attachments/assets/587bebdc-95e6-430a-85c6-b84ccfc36bc2)
-
 `brine-fp` is a 192-bit fixed-point math library built for high-precision, deterministic computation in constrained environments like the Solana SVM. It provides arithmetic, exponentiation, logarithms, and powers using `u192`-based representations, and is optimized for low compute unit (CU) usage on-chain.
 
 ---
@@ -24,7 +21,7 @@ These values are measured inside the Solana SVM (via test programs).
 
 ---
 
-## ✨ Features
+## Features
 
 - 192-bit unsigned & signed fixed-point types with 18 decimal places.
 - Supports `log`, `exp`, `pow`, `floor`, `ceil`, `almost_eq`, etc.
@@ -34,7 +31,7 @@ These values are measured inside the Solana SVM (via test programs).
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ```rust
 use brine_fp::UnsignedNumeric;
@@ -50,7 +47,7 @@ println!("e^5 ≈ {}", result.to_string());
 
 ---
 
-## 🧠 Internal Representation
+## Internal Representation
 
 Each `UnsignedNumeric` wraps a `InnerUint([lo, mid, hi])`, representing a 192-bit unsigned integer:
 
@@ -71,7 +68,7 @@ This format ensures:
 
 ---
 
-## 🧱 Use Cases
+## Use Cases
 
 - On-chain bonding curves
 - DeFi math & simulations
@@ -79,26 +76,6 @@ This format ensures:
 - Token economics
 - Time-value calculations
 - Anywhere you want `exp()` or `log()` without `f64`
-
----
-
-## 🛠 `no_std` Compatibility
-
-This crate is designed for `no_std` environments like the Solana SVM.
-
-If you're building in a `no_std` context, disable the default `std` feature:
-
-```toml
-[dependencies.brine-fp]
-version = "0.1"
-default-features = false
-```
-
----
-
-## Why “brine-fp”?
-
-“Brine” evokes salt water — a precise solution. The name reflects a design focused on _precision_, _fluidity_, and _minimal bloat_ — ideal for constrained environments.
 
 ---
 
@@ -111,6 +88,6 @@ default-features = false
 
 ---
 
-## 🙌 Contributing
+## Contributing
 
 Contributions are welcome! Please open issues or PRs on the GitHub repo.
