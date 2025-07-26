@@ -4,13 +4,16 @@ use super::unsigned::UnsignedNumeric;
 // https://github.com/solana-labs/solana-program-library/blob/v2.0/libraries/math/src/precise_number.rs
 // https://github.com/StrataFoundation/strata/blob/master/programs/spl-token-bonding/src/signed_precise_number.rs
 
-/// A `SignedNumeric` represents a signed 192-bit fixed-point number with 18 decimal places of precision.
+/// A `SignedNumeric` represents a signed fixed-point number with 18 decimal places of precision.
 ///
 /// This struct extends [`UnsignedNumeric`] by adding a `bool` flag to indicate whether the value is negative,
 /// enabling full support for signed decimal arithmetic.
 ///
 /// ### Internal Representation
-/// - The magnitude is stored as a [`UnsignedNumeric`], which wraps a [`InnerUint`] representing a 192-bit unsigned integer scaled by 10¹⁸.
+/// - The magnitude is stored as a [`UnsignedNumeric`], which wraps a [`InnerUint`] representing an unsigned integer scaled by 10¹⁸.
+/// - The bit width depends on the feature flag:
+///   - **Default (192-bit)**: 192-bit unsigned integer
+///   - **With `256-bit` feature**: 256-bit unsigned integer
 /// - The `is_negative` flag determines the sign of the number.
 ///
 /// ### Interpretation
@@ -20,8 +23,8 @@ use super::unsigned::UnsignedNumeric;
 /// ```
 ///
 /// ### Examples:
-/// - `value = UnsignedNumeric::from_u192([1_000_000_000_000_000_000, 0, 0]), is_negative = false` → 1.0
-/// - `value = UnsignedNumeric::from_u192([5_000_000_000_000_000_000, 0, 0]), is_negative = true`  → -5.0
+/// - `value = UnsignedNumeric::from_values(1_000_000_000_000_000_000, 0, 0), is_negative = false` → 1.0
+/// - `value = UnsignedNumeric::from_values(5_000_000_000_000_000_000, 0, 0), is_negative = true`  → -5.0
 ///
 /// This format is useful for financial and scientific applications where both precision and sign are critical,
 /// and where floating-point inaccuracies are unacceptable.
