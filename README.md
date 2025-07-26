@@ -107,7 +107,7 @@ default-features = false
 `brine-fp` is **heavily** based on prior work and stands on the shoulders of giants. The core math and algorithms are derived from:
 
 - [Solana Labs math-spl](https://github.com/solana-labs/solana-program-library/blob/v2.0/libraries/math/src/precise_number.rs) (Apache 2)
-- [Strata Foundation bonding curves](https://github.com/StrataFoundation/strata/blob/master/programs/spl-token-bonding/src/signed_precise_number.rs)
+- [Strata Foundation bonding curves](https://github.com/StrataFoundation/strata/blob/master/programs/spl-token-bonding/src/signed_precise_number.rs) (Apache 2 [with permission](https://x.com/redacted_noah/status/1948885849216876628))
 
 ---
 
