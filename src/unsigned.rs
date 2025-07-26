@@ -83,10 +83,10 @@ impl UnsignedNumeric {
 
     /// Constructs a `UnsignedNumeric` from an integer value by scaling it by ONE (10^18).
     /// For example, `new(7)` produces `7.0`.
-    /// Returns None on overflow during scaling.
-    pub fn new(value: u128) -> Option<Self> {
-        let value = InnerUint::from(value).checked_mul(one())?;
-        Some(Self { value })
+    pub fn new(value: u128) -> Self {
+        // `one()` is 10^18 and 10^18 * u128::MAX will always fit within 196 bits
+        let value = InnerUint::from(value).checked_mul(one()).unwrap();
+        Self { value }
     }
 
     /// Constructs a `UnsignedNumeric` from a `u128` that is already scaled by ONE (i.e. in fixed-point space).
@@ -277,9 +277,9 @@ impl UnsignedNumeric {
     pub fn to_string(&self) -> String {
         let whole = self.floor().unwrap().to_imprecise().unwrap();
         let decimals = self
-            .checked_sub(&UnsignedNumeric::new(whole).unwrap())
+            .checked_sub(&UnsignedNumeric::new(whole))
             .unwrap()
-            .checked_mul(&UnsignedNumeric::new(ONE).unwrap())
+            .checked_mul(&UnsignedNumeric::new(ONE))
             .unwrap()
             .to_imprecise()
             .unwrap();
@@ -311,60 +311,60 @@ mod tests {
 
     #[test]
     fn test_to_string_exact() {
-        let n = UnsignedNumeric::new(3).unwrap();
+        let n = UnsignedNumeric::new(3);
         assert_eq!(n.to_string(), "3.000000000000000000");
     }
 
     #[test]
     fn test_to_string_fractional() {
-        let mut n = UnsignedNumeric::new(3).unwrap();
+        let mut n = UnsignedNumeric::new(3);
         n.value += InnerUint::from(250_000_000_000_000_000u128); // +0.25
         assert_eq!(n.to_string(), "3.250000000000000000");
     }
 
     #[test]
     fn test_checked_add() {
-        let a = UnsignedNumeric::new(1).unwrap();
-        let b = UnsignedNumeric::new(2).unwrap();
+        let a = UnsignedNumeric::new(1);
+        let b = UnsignedNumeric::new(2);
         let sum = a.checked_add(&b).unwrap();
         assert_eq!(sum.to_imprecise().unwrap(), 3);
     }
 
     #[test]
     fn test_checked_sub_underflow() {
-        let a = UnsignedNumeric::new(1).unwrap();
-        let b = UnsignedNumeric::new(2).unwrap();
+        let a = UnsignedNumeric::new(1);
+        let b = UnsignedNumeric::new(2);
         assert!(a.checked_sub(&b).is_none());
     }
 
     #[test]
     fn test_checked_sub_valid() {
-        let a = UnsignedNumeric::new(3).unwrap();
-        let b = UnsignedNumeric::new(1).unwrap();
+        let a = UnsignedNumeric::new(3);
+        let b = UnsignedNumeric::new(1);
         let result = a.checked_sub(&b).unwrap();
         assert_eq!(result.to_imprecise().unwrap(), 2);
     }
 
     #[test]
     fn test_checked_mul_simple() {
-        let a = UnsignedNumeric::new(2).unwrap();
-        let b = UnsignedNumeric::new(3).unwrap();
+        let a = UnsignedNumeric::new(2);
+        let b = UnsignedNumeric::new(3);
         let product = a.checked_mul(&b).unwrap();
         assert_eq!(product.to_imprecise().unwrap(), 6);
     }
 
     #[test]
     fn test_checked_div_exact() {
-        let a = UnsignedNumeric::new(6).unwrap();
-        let b = UnsignedNumeric::new(2).unwrap();
+        let a = UnsignedNumeric::new(6);
+        let b = UnsignedNumeric::new(2);
         let result = a.checked_div(&b).unwrap();
         assert_eq!(result.to_imprecise().unwrap(), 3);
     }
 
     #[test]
     fn test_checked_div_rounded() {
-        let a = UnsignedNumeric::new(1).unwrap();
-        let b = UnsignedNumeric::new(3).unwrap(); // 1 / 3
+        let a = UnsignedNumeric::new(1);
+        let b = UnsignedNumeric::new(3); // 1 / 3
 
         let result = a.checked_div(&b).unwrap();
         let expected = UnsignedNumeric::from_scaled_u128(333_333_333_333_333_333); // ~0.333...
@@ -374,8 +374,8 @@ mod tests {
 
     #[test]
     fn test_unsigned_sub_positive() {
-        let a = UnsignedNumeric::new(7).unwrap();
-        let b = UnsignedNumeric::new(3).unwrap();
+        let a = UnsignedNumeric::new(7);
+        let b = UnsignedNumeric::new(3);
         let (result, is_negative) = a.unsigned_sub(&b);
         assert_eq!(result.to_imprecise().unwrap(), 4);
         assert!(!is_negative);
@@ -383,8 +383,8 @@ mod tests {
 
     #[test]
     fn test_unsigned_sub_negative() {
-        let a = UnsignedNumeric::new(3).unwrap();
-        let b = UnsignedNumeric::new(7).unwrap();
+        let a = UnsignedNumeric::new(3);
+        let b = UnsignedNumeric::new(7);
         let (result, is_negative) = a.unsigned_sub(&b);
         assert_eq!(result.to_imprecise().unwrap(), 4);
         assert!(is_negative);
@@ -392,7 +392,7 @@ mod tests {
 
     #[test]
     fn test_almost_eq_within_precision() {
-        let a = UnsignedNumeric::new(5).unwrap();
+        let a = UnsignedNumeric::new(5);
         let mut b = a.clone();
         b.value += InnerUint::from(10); // Very slight difference
 
@@ -402,8 +402,8 @@ mod tests {
 
     #[test]
     fn test_comparisons() {
-        let a = UnsignedNumeric::new(1).unwrap();
-        let b = UnsignedNumeric::new(2).unwrap();
+        let a = UnsignedNumeric::new(1);
+        let b = UnsignedNumeric::new(2);
         assert!(a.less_than(&b));
         assert!(b.greater_than(&a));
         assert!(a.less_than_or_equal(&b));
@@ -414,7 +414,7 @@ mod tests {
 
     #[test]
     fn test_signed_conversion() {
-        let u = UnsignedNumeric::new(42).unwrap();
+        let u = UnsignedNumeric::new(42);
         let s = u.signed();
         assert_eq!(s.value, u);
         assert!(!s.is_negative);
@@ -431,8 +431,8 @@ mod tests {
 
     #[test]
     fn test_floor() {
-        let whole_number = UnsignedNumeric::new(2).unwrap();
-        let mut decimal_number = UnsignedNumeric::new(2).unwrap();
+        let whole_number = UnsignedNumeric::new(2);
+        let mut decimal_number = UnsignedNumeric::new(2);
         decimal_number.value += InnerUint::from(1);
         let floor = decimal_number.floor().unwrap();
         let floor_again = floor.floor().unwrap();
@@ -442,8 +442,8 @@ mod tests {
 
     #[test]
     fn test_ceiling() {
-        let whole_number = UnsignedNumeric::new(2).unwrap();
-        let mut decimal_number = UnsignedNumeric::new(2).unwrap();
+        let whole_number = UnsignedNumeric::new(2);
+        let mut decimal_number = UnsignedNumeric::new(2);
         decimal_number.value -= InnerUint::from(1);
         let ceiling = decimal_number.ceiling().unwrap();
         let ceiling_again = ceiling.ceiling().unwrap();
@@ -461,7 +461,7 @@ mod tests {
     #[test]
     fn test_mul_overflow() {
         let a = max_numeric();
-        let b = UnsignedNumeric::new(2).unwrap(); // 2.0 in scaled form
+        let b = UnsignedNumeric::new(2); // 2.0 in scaled form
 
         let result = a.checked_mul(&b);
         assert!(result.is_none(), "Expected overflow on multiply");
@@ -469,8 +469,8 @@ mod tests {
 
     #[test]
     fn test_mul_fallback_path() {
-        let a = UnsignedNumeric::new(1_000_000_000_000u128).unwrap(); // large-ish value
-        let b = UnsignedNumeric::new(2).unwrap();
+        let a = UnsignedNumeric::new(1_000_000_000_000u128); // large-ish value
+        let b = UnsignedNumeric::new(2);
 
         let result = a.checked_mul(&b).unwrap();
         assert_eq!(result.to_imprecise().unwrap(), 2_000_000_000_000);
@@ -489,7 +489,7 @@ mod tests {
 
     #[test]
     fn test_div_by_zero() {
-        let a = UnsignedNumeric::new(42).unwrap();
+        let a = UnsignedNumeric::new(42);
         let zero = UnsignedNumeric::zero();
 
         assert!(a.checked_div(&zero).is_none(), "Expected div by zero to fail");

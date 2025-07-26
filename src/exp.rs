@@ -248,57 +248,49 @@ mod tests {
         let half = UnsignedNumeric { value: half() }.signed();
         assert!(half.exp().unwrap().almost_eq(
             &UnsignedNumeric::new(16487212707001282)
-                .unwrap()
-                .checked_div(&UnsignedNumeric::new(10000000000000000).unwrap())
+                .checked_div(&UnsignedNumeric::new(10000000000000000))
                 .unwrap(),
             precision
         ));
 
         let three_half = UnsignedNumeric::new(15)
-            .unwrap()
-            .checked_div(&UnsignedNumeric::new(10).unwrap())
+            .checked_div(&UnsignedNumeric::new(10))
             .unwrap()
             .signed();
         assert!(three_half.exp().unwrap().almost_eq(
             &UnsignedNumeric::new(44816890703380645)
-                .unwrap()
-                .checked_div(&UnsignedNumeric::new(10000000000000000).unwrap())
+                .checked_div(&UnsignedNumeric::new(10000000000000000))
                 .unwrap(),
             precision
         ));
 
         let point_one = UnsignedNumeric::new(1)
-            .unwrap()
-            .checked_div(&UnsignedNumeric::new(10).unwrap())
+            .checked_div(&UnsignedNumeric::new(10))
             .unwrap()
             .signed();
         assert!(point_one.exp().unwrap().almost_eq(
             &UnsignedNumeric::new(11051709180756477)
-                .unwrap()
-                .checked_div(&UnsignedNumeric::new(10000000000000000).unwrap())
+                .checked_div(&UnsignedNumeric::new(10000000000000000))
                 .unwrap(),
             precision
         ));
 
         let negative = UnsignedNumeric::new(55)
-            .unwrap()
-            .checked_div(&UnsignedNumeric::new(100).unwrap())
+            .checked_div(&UnsignedNumeric::new(100))
             .unwrap()
             .signed()
             .negate();
         assert!(negative.exp().unwrap().almost_eq(
             &UnsignedNumeric::new(5769498103804866)
-                .unwrap()
-                .checked_div(&UnsignedNumeric::new(10000000000000000).unwrap())
+                .checked_div(&UnsignedNumeric::new(10000000000000000))
                 .unwrap(),
             precision
         ));
 
-        let test = UnsignedNumeric::new(19).unwrap().signed();
+        let test = UnsignedNumeric::new(19).signed();
         assert!(test.exp().unwrap().almost_eq(
             &UnsignedNumeric::new(178482300963187260)
-                .unwrap()
-                .checked_div(&UnsignedNumeric::new(1000000000).unwrap())
+                .checked_div(&UnsignedNumeric::new(1000000000))
                 .unwrap(),
             precision
         ));
@@ -307,22 +299,19 @@ mod tests {
     #[test]
     fn test_pow() {
         let precision = InnerUint::from(5_000_000_000_000_u128); // correct to at least 12 decimal places
-        let test = UnsignedNumeric::new(8).unwrap();
+        let test = UnsignedNumeric::new(8);
         let sqrt = test.pow(&HALF).unwrap();
         let expected = UnsignedNumeric::new(28284271247461903)
-            .unwrap()
-            .checked_div(&UnsignedNumeric::new(10000000000000000).unwrap())
+            .checked_div(&UnsignedNumeric::new(10000000000000000))
             .unwrap();
         assert!(sqrt.almost_eq(&expected, precision));
 
         let test2 = UnsignedNumeric::new(55)
-            .unwrap()
-            .checked_div(&UnsignedNumeric::new(100).unwrap())
+            .checked_div(&UnsignedNumeric::new(100))
             .unwrap();
         let squared = test2.pow(&TWO_PREC).unwrap();
         let expected = UnsignedNumeric::new(3025)
-            .unwrap()
-            .checked_div(&UnsignedNumeric::new(10000).unwrap())
+            .checked_div(&UnsignedNumeric::new(10000))
             .unwrap();
         assert!(squared.almost_eq(&expected, precision));
     }
@@ -330,11 +319,10 @@ mod tests {
     #[test]
     fn test_sqrt() {
         let precision = InnerUint::from(5_000_000_000_000_u128); // correct to at least 12 decimal places
-        let test = UnsignedNumeric::new(12).unwrap();
+        let test = UnsignedNumeric::new(12);
         let sqrt = test.sqrt().unwrap();
         let expected = UnsignedNumeric::new(34641016151377544)
-            .unwrap()
-            .checked_div(&UnsignedNumeric::new(10000000000000000).unwrap())
+            .checked_div(&UnsignedNumeric::new(10000000000000000))
             .unwrap();
         assert!(sqrt.almost_eq(&expected, precision));
     }
@@ -343,18 +331,17 @@ mod tests {
     pub fn test_signed_sqrt() {
         let precision = InnerUint::from(5_000_000_000_000_u128); // correct to at least 12 decimal places
         let test = SignedNumeric {
-            value: UnsignedNumeric::new(8).unwrap(),
+            value: UnsignedNumeric::new(8),
             is_negative: false,
         };
         let sqrt = test.sqrt().unwrap();
         let expected = UnsignedNumeric::new(28284271247461903)
-            .unwrap()
-            .checked_div(&UnsignedNumeric::new(10000000000000000).unwrap())
+            .checked_div(&UnsignedNumeric::new(10000000000000000))
             .unwrap();
         assert!(sqrt.value.almost_eq(&expected, precision));
 
         let neg_test = SignedNumeric {
-            value: UnsignedNumeric::new(8).unwrap(),
+            value: UnsignedNumeric::new(8),
             is_negative: true,
         };
         assert!(neg_test.sqrt().is_none());
@@ -370,8 +357,7 @@ mod tests {
     #[test]
     fn test_exp_small_negative() {
         let x = UnsignedNumeric::new(1)
-            .unwrap()
-            .checked_div(&UnsignedNumeric::new(1000).unwrap())
+            .checked_div(&UnsignedNumeric::new(1000))
             .unwrap()
             .signed()
             .negate();
@@ -389,7 +375,7 @@ mod tests {
 
     #[test]
     fn test_exp_large_positive() {
-        let x = UnsignedNumeric::new(10).unwrap().signed(); // e^10 ≈ 22026.4657948067
+        let x = UnsignedNumeric::new(10).signed(); // e^10 ≈ 22026.4657948067
         let result = x.exp().unwrap();
 
         // Correctly scaled expected value: e^10 * 1e18
@@ -404,7 +390,7 @@ mod tests {
 
     #[test]
     fn test_exp_large_negative() {
-        let x = UnsignedNumeric::new(10).unwrap().signed().negate(); // e^-10 ≈ 0.00004539992
+        let x = UnsignedNumeric::new(10).signed().negate(); // e^-10 ≈ 0.00004539992
         let result = x.exp().unwrap();
 
         let expected = UnsignedNumeric::from_scaled_u128(45_399_920_000_000); // scaled by 10^18
@@ -444,7 +430,7 @@ mod tests {
 
     #[test]
     fn test_frexp_two() {
-        let two = UnsignedNumeric::new(2).unwrap();
+        let two = UnsignedNumeric::new(2);
         let (frac, exp) = two.frexp().unwrap();
         let recombined = frexp_recombine(frac.clone(), exp);
         assert!(
@@ -461,8 +447,8 @@ mod tests {
 
     #[test]
     fn test_frexp_fractional() {
-        let val = UnsignedNumeric::new(3).unwrap()
-            .checked_div(&UnsignedNumeric::new(4).unwrap()) // 0.75
+        let val = UnsignedNumeric::new(3)
+            .checked_div(&UnsignedNumeric::new(4)) // 0.75
             .unwrap();
         let (frac, exp) = val.frexp().unwrap();
         let recombined = frexp_recombine(frac.clone(), exp);

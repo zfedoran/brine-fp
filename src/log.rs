@@ -108,7 +108,7 @@ impl UnsignedNumeric {
         let s4 = s2.checked_mul(&s2)?;
         // s2 * (L1 + s4*(L3+s4*(L5+s4*L7)))
         let t1 = s2.checked_mul(&L1.checked_add(&s4.checked_mul(
-            &L3.checked_add(&s4.checked_mul(&L5.checked_add(&s4.checked_mul(&L7)?)?)?)?,
+            &L3.checked_add(&s4.checked_mul(&L5.checked_add(&s4.checked_mul(&L7)?)?)?)?
         )?)?)?;
 
         // s4 * (L2 + s4*(L4+s4*L6))
@@ -121,7 +121,7 @@ impl UnsignedNumeric {
             .checked_mul(&f)?
             .checked_div(&UnsignedNumeric { value: two() }.signed())?;
         let k = SignedNumeric {
-            value: UnsignedNumeric::new(u128::try_from(ki.abs()).ok()?)?,
+            value: UnsignedNumeric::new(u128::try_from(ki.abs()).ok()?),
             is_negative: ki < 0,
         };
 
@@ -152,55 +152,47 @@ mod tests {
     fn test_log() {
         let precision = InnerUint::from(5_000_000_000_u128); // correct to at least 9 decimal places
 
-        let test = UnsignedNumeric::new(9).unwrap();
+        let test = UnsignedNumeric::new(9);
         let log = test.log().unwrap().value;
         let expected = UnsignedNumeric::new(21972245773362196)
-            .unwrap()
-            .checked_div(&UnsignedNumeric::new(10000000000000000).unwrap())
+            .checked_div(&UnsignedNumeric::new(10000000000000000))
             .unwrap();
         assert!(log.almost_eq(&expected, precision));
 
-        let test2 = UnsignedNumeric::new(2).unwrap();
+        let test2 = UnsignedNumeric::new(2);
         assert!(test2.log().unwrap().value.almost_eq(
             &UnsignedNumeric::new(6931471805599453)
-                .unwrap()
-                .checked_div(&UnsignedNumeric::new(10000000000000000).unwrap())
+                .checked_div(&UnsignedNumeric::new(10000000000000000))
                 .unwrap(),
             precision
         ));
 
         let test3 = &UnsignedNumeric::new(12)
-            .unwrap()
-            .checked_div(&UnsignedNumeric::new(10).unwrap())
+            .checked_div(&UnsignedNumeric::new(10))
             .unwrap();
         assert!(test3.log().unwrap().value.almost_eq(
             &UnsignedNumeric::new(1823215567939546)
-                .unwrap()
-                .checked_div(&UnsignedNumeric::new(10000000000000000).unwrap())
+                .checked_div(&UnsignedNumeric::new(10000000000000000))
                 .unwrap(),
             precision
         ));
 
         let test5 = &UnsignedNumeric::new(15)
-            .unwrap()
-            .checked_div(&UnsignedNumeric::new(10).unwrap())
+            .checked_div(&UnsignedNumeric::new(10))
             .unwrap();
         assert!(test5.log().unwrap().value.almost_eq(
             &UnsignedNumeric::new(4054651081081644)
-                .unwrap()
-                .checked_div(&UnsignedNumeric::new(10000000000000000).unwrap())
+                .checked_div(&UnsignedNumeric::new(10000000000000000))
                 .unwrap(),
             precision
         ));
 
         let test6 = UnsignedNumeric::new(4)
-            .unwrap()
-            .checked_div(&UnsignedNumeric::new(1000000).unwrap())
+            .checked_div(&UnsignedNumeric::new(1000000))
             .unwrap();
         assert!(test6.log().unwrap().value.almost_eq(
             &UnsignedNumeric::new(12429216196844383)
-                .unwrap()
-                .checked_div(&UnsignedNumeric::new(1000000000000000).unwrap())
+                .checked_div(&UnsignedNumeric::new(1000000000000000))
                 .unwrap(),
             precision
         ));

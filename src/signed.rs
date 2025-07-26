@@ -32,6 +32,14 @@ pub struct SignedNumeric {
 }
 
 impl SignedNumeric {
+    pub fn new(value: i128) -> Self {
+        let abs_value = value.unsigned_abs();
+        let is_negative = value < 0;
+        Self {
+            value: UnsignedNumeric::new(abs_value),
+            is_negative,
+        }
+    }
     pub fn negate(&self) -> SignedNumeric {
         SignedNumeric {
             value: self.value.clone(),
@@ -121,7 +129,7 @@ mod tests {
 
     fn signed(val: u128, is_negative: bool) -> SignedNumeric {
         SignedNumeric {
-            value: UnsignedNumeric::new(val).unwrap(),
+            value: UnsignedNumeric::new(val),
             is_negative,
         }
     }
