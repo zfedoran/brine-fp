@@ -153,6 +153,14 @@ impl SignedNumeric {
             }
         }
     }
+
+    /// Returns the square root of `self`, returning `None` if the number is negative.
+    pub fn sqrt(&self) -> Option<Self> {
+        if self.is_negative {
+            return None;
+        }
+        self.value.sqrt().map(|v| Self { value: v, is_negative: false })
+    }
 }
 
 impl UnsignedNumeric {
@@ -207,6 +215,11 @@ impl UnsignedNumeric {
         let lg = self.log()?;
         let x = exp.signed().checked_mul(&lg)?;
         x.exp()
+    }
+
+    /// Returns the square root of `self`
+    pub fn sqrt(&self) -> Option<Self> {
+        self.pow(&HALF)
     }
 }
 
@@ -312,6 +325,39 @@ mod tests {
             .checked_div(&UnsignedNumeric::new(10000).unwrap())
             .unwrap();
         assert!(squared.almost_eq(&expected, precision));
+    }
+
+    #[test]
+    fn test_sqrt() {
+        let precision = InnerUint::from(5_000_000_000_000_u128); // correct to at least 12 decimal places
+        let test = UnsignedNumeric::new(12).unwrap();
+        let sqrt = test.sqrt().unwrap();
+        let expected = UnsignedNumeric::new(34641016151377544)
+            .unwrap()
+            .checked_div(&UnsignedNumeric::new(10000000000000000).unwrap())
+            .unwrap();
+        assert!(sqrt.almost_eq(&expected, precision));
+    }
+
+    #[test]
+    pub fn test_signed_sqrt() {
+        let precision = InnerUint::from(5_000_000_000_000_u128); // correct to at least 12 decimal places
+        let test = SignedNumeric {
+            value: UnsignedNumeric::new(8).unwrap(),
+            is_negative: false,
+        };
+        let sqrt = test.sqrt().unwrap();
+        let expected = UnsignedNumeric::new(28284271247461903)
+            .unwrap()
+            .checked_div(&UnsignedNumeric::new(10000000000000000).unwrap())
+            .unwrap();
+        assert!(sqrt.value.almost_eq(&expected, precision));
+
+        let neg_test = SignedNumeric {
+            value: UnsignedNumeric::new(8).unwrap(),
+            is_negative: true,
+        };
+        assert!(neg_test.sqrt().is_none());
     }
 
     #[test]
