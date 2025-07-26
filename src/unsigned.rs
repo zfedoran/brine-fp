@@ -7,24 +7,33 @@ use core::convert::*;
 // https://github.com/solana-labs/solana-program-library/blob/v2.0/libraries/math/src/precise_number.rs
 // https://github.com/StrataFoundation/strata/blob/master/programs/spl-token-bonding/src/precise_number.rs
 
-/// A `UnsignedNumeric` is an unsigned 192-bit fixed-point number with 18 decimal places of
-/// precision.
+/// A `UnsignedNumeric` is an unsigned fixed-point number with 18 decimal places of precision.
 ///
 /// ### Internal Representation
-/// Internally, the value is stored as a [`InnerUint`], which wraps a little-endian array `[u64; 3]`.
-/// This means the layout is:
+/// Internally, the value is stored as a [`InnerUint`], which wraps a little-endian array.
+/// The size depends on the feature flag:
 ///
+/// - **Default (192-bit)**: `[u64; 3]` layout
+/// - **With `256-bit` feature**: `[u64; 4]` layout
+///
+/// **Default layout (192-bit)**:
 /// ```text
 /// InnerUint([lo, mid, hi])
 /// // equivalent to:
 /// // value = lo + (mid << 64) + (hi << 128)
 /// ```
 ///
-/// Each component contributes to the full 192-bit value:
-///
+/// **256-bit layout**:
 /// ```text
-/// value = (hi × 2^128) + (mid × 2^64) + lo
+/// InnerUint([lo, mid, hi, hi2])
+/// // equivalent to:
+/// // value = lo + (mid << 64) + (hi << 128) + (hi2 << 192)
 /// ```
+///
+/// Each component contributes to the full value:
+///
+/// **Default**: `value = (hi × 2^128) + (mid × 2^64) + lo`
+/// **256-bit**: `value = (hi2 × 2^192) + (hi × 2^128) + (mid × 2^64) + lo`
 ///
 /// ### Fixed-Point Scaling
 /// All values are scaled by [`ONE`] (10^18). That is, the internal number is interpreted
@@ -37,9 +46,10 @@ use core::convert::*;
 ///
 /// ### Example: High-Bit Usage
 ///
+/// **Default (192-bit)**:
 /// When you write:
 /// ```text
-/// let a = UnsignedNumeric::from([0, 0, 1]);
+/// let a = UnsignedNumeric::from_values(0, 0, 1);
 /// ```
 /// This initializes the internal 192-bit value with the array `[0, 0, 1]`.
 /// In this representation:
@@ -55,11 +65,30 @@ use core::convert::*;
 ///       = 340282366920938463463374607431768211456
 /// ```
 ///
-/// Since this is a fixed-point number, the real-world value is:
+/// **256-bit feature**:
+/// When you write:
+/// ```text
+/// let a = UnsignedNumeric::from_values(0, 0, 0, 1);
+/// ```
+/// This initializes the internal 256-bit value with the array `[0, 0, 0, 1]`.
+/// In this representation:
+///
+/// - `0` is the least significant 64 bits (`lo`)
+/// - `0` is the middle 64 bits (`mid`)
+/// - `0` is the high 64 bits (`hi`)
+/// - `1` is the most significant 64 bits (`hi2`)
+///
+/// The actual 256-bit value is computed as:
 ///
 /// ```text
-/// real_value = value / 10^18 = 340282366920938463463.374607431768211456
+/// value = (1 × 2^192) + (0 × 2^128) + (0 × 2^64) + 0 = 2^192
+///       = 6277101735386680763835789423207666416102355444464034512896
 /// ```
+///
+/// Since this is a fixed-point number, the real-world value is:
+///
+/// **Default**: `real_value = value / 10^18 = 340282366920938463463.374607431768211456`
+/// **256-bit**: `real_value = value / 10^18 = 6277101735386680763835789423207666416102355444464034512896 / 10^18`
 ///
 /// This system allows for both extremely high precision and a vast dynamic range,
 /// making [`UnsignedNumeric`] ideal for financial, scientific, or blockchain applications
@@ -100,13 +129,25 @@ impl UnsignedNumeric {
     /// Constructs a `UnsignedNumeric` directly from a raw `[u64; 3]` value.
     /// The input is interpreted as already scaled (fixed-point).
     /// Layout is little-endian: `[lo, mid, hi]` = `lo + (mid << 64) + (hi << 128)`.
+    #[cfg(not(feature = "256-bit"))]
     pub fn from_values(lo: u64, mid: u64, hi: u64) -> Self {
         Self {
             value: InnerUint([lo, mid, hi]),
         }
     }
 
+    /// Constructs a `UnsignedNumeric` directly from a raw `[u64; 4]` value.
+    /// The input is interpreted as already scaled (fixed-point).
+    /// Layout is little-endian: `[lo, mid, hi, hi2]` = `lo + (mid << 64) + (hi << 128) + (hi2 << 192)`.
+    #[cfg(feature = "256-bit")]
+    pub fn from_values(lo: u64, mid: u64, hi: u64, hi2: u64) -> Self {
+        Self {
+            value: InnerUint([lo, mid, hi, hi2]),
+        }
+    }
+
     /// Converts this `UnsignedNumeric` into a raw `[u8; 24]` representation.
+    #[cfg(not(feature = "256-bit"))]
     pub fn to_bytes(&self) -> [u8; 24] {
         let InnerUint([lo, mid, hi]) = self.value;
 
@@ -118,7 +159,22 @@ impl UnsignedNumeric {
         bytes
     }
 
+    /// Converts this `UnsignedNumeric` into a raw `[u8; 32]` representation.
+    #[cfg(feature = "256-bit")]
+    pub fn to_bytes(&self) -> [u8; 32] {
+        let InnerUint([lo, mid, hi, hi2]) = self.value;
+
+        let mut bytes = [0u8; 32];
+        bytes[0..8].copy_from_slice(&lo.to_le_bytes());
+        bytes[8..16].copy_from_slice(&mid.to_le_bytes());
+        bytes[16..24].copy_from_slice(&hi.to_le_bytes());
+        bytes[24..32].copy_from_slice(&hi2.to_le_bytes());
+
+        bytes
+    }
+
     /// Converts a raw `[u8; 24]` representation into a `UnsignedNumeric`.
+    #[cfg(not(feature = "256-bit"))]
     pub fn from_bytes(bytes: &[u8; 24]) -> Self {
         let lo = u64::from_le_bytes(bytes[0..8].try_into().unwrap());
         let mid = u64::from_le_bytes(bytes[8..16].try_into().unwrap());
@@ -126,6 +182,19 @@ impl UnsignedNumeric {
 
         Self {
             value: InnerUint([lo, mid, hi]),
+        }
+    }
+
+    /// Converts a raw `[u8; 32]` representation into a `UnsignedNumeric`.
+    #[cfg(feature = "256-bit")]
+    pub fn from_bytes(bytes: &[u8; 32]) -> Self {
+        let lo = u64::from_le_bytes(bytes[0..8].try_into().unwrap());
+        let mid = u64::from_le_bytes(bytes[8..16].try_into().unwrap());
+        let hi = u64::from_le_bytes(bytes[16..24].try_into().unwrap());
+        let hi2 = u64::from_le_bytes(bytes[24..32].try_into().unwrap());
+
+        Self {
+            value: InnerUint([lo, mid, hi, hi2]),
         }
     }
 
@@ -422,11 +491,22 @@ mod tests {
 
     #[test]
     fn test_serialization() {
-        let original = UnsignedNumeric::from_values(123, 456, 789);
-        let bytes = original.to_bytes();
-        let recovered = UnsignedNumeric::from_bytes(&bytes);
+        #[cfg(not(feature = "256-bit"))]
+        {
+            let original = UnsignedNumeric::from_values(123, 456, 789);
+            let bytes = original.to_bytes();
+            let recovered = UnsignedNumeric::from_bytes(&bytes);
 
-        assert_eq!(original, recovered);
+            assert_eq!(original, recovered);
+        }
+        #[cfg(feature = "256-bit")]
+        {
+            let original = UnsignedNumeric::from_values(123, 456, 789, 101112);
+            let bytes = original.to_bytes();
+            let recovered = UnsignedNumeric::from_bytes(&bytes);
+
+            assert_eq!(original, recovered);
+        }
     }
 
     #[test]
@@ -478,13 +558,26 @@ mod tests {
 
     #[test]
     fn test_mul_large_by_large_overflow() {
-        let a = UnsignedNumeric {
-            value: InnerUint([0, 0, 1]), // 2^128
-        };
-        let b = a.clone(); // 2^128 * 2^128 = 2^256, definitely too large
+        #[cfg(not(feature = "256-bit"))]
+        {
+            let a = UnsignedNumeric {
+                value: InnerUint([0, 0, 1]), // 2^128
+            };
+            let b = a.clone(); // 2^128 * 2^128 = 2^256, definitely too large
 
-        let result = a.checked_mul(&b);
-        assert!(result.is_none(), "Expected overflow on large * large");
+            let result = a.checked_mul(&b);
+            assert!(result.is_none(), "Expected overflow on large * large");
+        }
+        #[cfg(feature = "256-bit")]
+        {
+            let a = UnsignedNumeric {
+                value: InnerUint([0, 0, 0, 1]), // 2^192
+            };
+            let b = a.clone(); // 2^192 * 2^192 = 2^384, definitely too large
+
+            let result = a.checked_mul(&b);
+            assert!(result.is_none(), "Expected overflow on large * large");
+        }
     }
 
     #[test]

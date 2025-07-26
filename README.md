@@ -4,7 +4,7 @@
 ![license][license-image]
 [![crates.io](https://img.shields.io/crates/v/brine-fp.svg?style=flat)](https://crates.io/crates/brine-fp)
 
-`brine-fp` is a 192-bit fixed-point math library built for high-precision, deterministic computation in constrained environments like the Solana SVM. It provides arithmetic, exponentiation, logarithms, and powers using `u192`-based representations, and is optimized for low compute unit (CU) usage on-chain.
+`brine-fp` is a high-precision fixed-point math library built for deterministic computation in constrained environments like the Solana SVM. It provides arithmetic, exponentiation, logarithms, and powers using configurable bit-width representations, and is optimized for low compute unit (CU) usage on-chain.
 
 ---
 
@@ -23,7 +23,9 @@ These values are measured inside the Solana SVM (via test programs).
 
 ## Features
 
-- 192-bit unsigned & signed fixed-point types with 18 decimal places.
+- Configurable bit-width fixed-point types with 18 decimal places:
+  - **Default**: 192-bit unsigned & signed types
+  - **With `256-bit` feature**: 256-bit unsigned & signed types
 - Supports `log`, `exp`, `pow`, `floor`, `ceil`, `almost_eq`, etc.
 - Remez polynomial approximations based on FreeBSD `msun`.
 - Designed for deterministic and overflow-aware computation.
@@ -47,10 +49,26 @@ println!("e^5 ≈ {}", result.to_string());
 
 ---
 
+## Feature Flags
+
+### 256-bit Support
+
+Enable 256-bit precision by adding the feature flag to your `Cargo.toml`:
+
+```toml
+[dependencies]
+brine-fp = { version = "0.2.0", features = ["256-bit"] }
+```
+
+This changes the internal representation from 192-bit to 256-bit, providing even larger dynamic range.
+
+---
+
 ## Internal Representation
 
-Each `UnsignedNumeric` wraps a `InnerUint([lo, mid, hi])`, representing a 192-bit unsigned integer:
+Each `UnsignedNumeric` wraps a `InnerUint`, representing a configurable-width unsigned integer:
 
+**Default (192-bit)**:
 ```rust
 InnerUint([lo, mid, hi])
 
@@ -58,11 +76,20 @@ InnerUint([lo, mid, hi])
 // value = lo + (mid << 64) + (hi << 128)
 ```
 
+**With `256-bit` feature**:
+```rust
+InnerUint([lo, mid, hi, hi2])
+
+// Equivalent to:
+// value = lo + (mid << 64) + (hi << 128) + (hi2 << 192)
+```
+
 All values are scaled by `10^18`, enabling 18-digit decimal precision. 
 
 This format ensures:
 
-- Extreme range: from `1e-18` up to `~6.3 × 10³⁹` real-world units
+- **192-bit**: Range from `1e-18` up to `~6.3 × 10³⁹` real-world units
+- **256-bit**: Range from `1e-18` up to `~1.2 × 10⁵⁸` real-world units
 - High precision: 18 decimals
 - Fully deterministic integer math (no `f64`, no `float`)
 
