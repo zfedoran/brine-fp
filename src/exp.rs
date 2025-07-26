@@ -153,6 +153,14 @@ impl SignedNumeric {
             }
         }
     }
+
+    /// Returns the square root of `self`, returning `None` if the number is negative.
+    pub fn sqrt(&self) -> Option<Self> {
+        if self.is_negative {
+            return None;
+        }
+        self.value.sqrt().map(|v| Self { value: v, is_negative: false })
+    }
 }
 
 impl UnsignedNumeric {
@@ -207,6 +215,11 @@ impl UnsignedNumeric {
         let lg = self.log()?;
         let x = exp.signed().checked_mul(&lg)?;
         x.exp()
+    }
+
+    /// Returns the square root of `self`
+    pub fn sqrt(&self) -> Option<Self> {
+        self.pow(&HALF)
     }
 }
 

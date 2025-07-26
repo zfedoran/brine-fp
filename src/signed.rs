@@ -114,6 +114,11 @@ impl SignedNumeric {
             is_negative: self.is_negative,
         })
     }
+
+    pub fn to_string(&self) -> String {
+        let sign = if self.is_negative { "-" } else { "" };
+        format!("{}{}", sign, self.value.to_string())
+    }
 }
 
 #[cfg(test)]
@@ -267,5 +272,25 @@ mod tests {
         let floored = neg_with_decimals.floor().unwrap();
         assert_eq!(floored.value, base.value);
         assert_eq!(floored.is_negative, true);
+    }
+
+    #[test]
+    fn test_to_string_exact() {
+        let n = signed(3, false);
+        assert_eq!(n.to_string(), "3.000000000000000000");
+        
+        let n_neg = signed(3, true);
+        assert_eq!(n_neg.to_string(), "-3.000000000000000000");
+    }
+
+    #[test]
+    fn test_to_string_fractional() {
+        let mut n = signed(3, false);
+        n.value.value += InnerUint::from(250_000_000_000_000_000u128); // +0.25
+        assert_eq!(n.to_string(), "3.250000000000000000");
+        
+        let mut n_neg = signed(3, true);
+        n_neg.value.value += InnerUint::from(250_000_000_000_000_000u128); // +0.25
+        assert_eq!(n_neg.to_string(), "-3.250000000000000000");
     }
 }
