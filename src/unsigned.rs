@@ -2,6 +2,7 @@ use super::consts::*;
 use super::signed::SignedNumeric;
 use super::InnerUint;
 use core::convert::*;
+use core::ops::{Add, Sub, Mul, Div};
 
 // Based on the following implementations:
 // https://github.com/solana-labs/solana-program-library/blob/v2.0/libraries/math/src/precise_number.rs
@@ -287,6 +288,135 @@ impl UnsignedNumeric {
     }
 }
 
+// Standard arithmetic trait implementations
+impl Add for UnsignedNumeric {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        self.checked_add(&rhs).unwrap()
+    }
+}
+
+impl Add<&UnsignedNumeric> for UnsignedNumeric {
+    type Output = Self;
+
+    fn add(self, rhs: &Self) -> Self::Output {
+        self.checked_add(rhs).unwrap()
+    }
+}
+
+impl Add<UnsignedNumeric> for &UnsignedNumeric {
+    type Output = UnsignedNumeric;
+
+    fn add(self, rhs: UnsignedNumeric) -> Self::Output {
+        self.checked_add(&rhs).unwrap()
+    }
+}
+
+impl Add<&UnsignedNumeric> for &UnsignedNumeric {
+    type Output = UnsignedNumeric;
+
+    fn add(self, rhs: &UnsignedNumeric) -> Self::Output {
+        self.checked_add(rhs).unwrap()
+    }
+}
+
+impl Sub for UnsignedNumeric {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        self.checked_sub(&rhs).unwrap()
+    }
+}
+
+impl Sub<&UnsignedNumeric> for UnsignedNumeric {
+    type Output = Self;
+
+    fn sub(self, rhs: &Self) -> Self::Output {
+        self.checked_sub(rhs).unwrap()
+    }
+}
+
+impl Sub<UnsignedNumeric> for &UnsignedNumeric {
+    type Output = UnsignedNumeric;
+
+    fn sub(self, rhs: UnsignedNumeric) -> Self::Output {
+        self.checked_sub(&rhs).unwrap()
+    }
+}
+
+impl Sub<&UnsignedNumeric> for &UnsignedNumeric {
+    type Output = UnsignedNumeric;
+
+    fn sub(self, rhs: &UnsignedNumeric) -> Self::Output {
+        self.checked_sub(rhs).unwrap()
+    }
+}
+
+impl Mul for UnsignedNumeric {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        self.checked_mul(&rhs).unwrap()
+    }
+}
+
+impl Mul<&UnsignedNumeric> for UnsignedNumeric {
+    type Output = Self;
+
+    fn mul(self, rhs: &Self) -> Self::Output {
+        self.checked_mul(rhs).unwrap()
+    }
+}
+
+impl Mul<UnsignedNumeric> for &UnsignedNumeric {
+    type Output = UnsignedNumeric;
+
+    fn mul(self, rhs: UnsignedNumeric) -> Self::Output {
+        self.checked_mul(&rhs).unwrap()
+    }
+}
+
+impl Mul<&UnsignedNumeric> for &UnsignedNumeric {
+    type Output = UnsignedNumeric;
+
+    fn mul(self, rhs: &UnsignedNumeric) -> Self::Output {
+        self.checked_mul(rhs).unwrap()
+    }
+}
+
+impl Div for UnsignedNumeric {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        self.checked_div(&rhs).unwrap()
+    }
+}
+
+impl Div<&UnsignedNumeric> for UnsignedNumeric {
+    type Output = Self;
+
+    fn div(self, rhs: &Self) -> Self::Output {
+        self.checked_div(rhs).unwrap()
+    }
+}
+
+impl Div<UnsignedNumeric> for &UnsignedNumeric {
+    type Output = UnsignedNumeric;
+
+    fn div(self, rhs: UnsignedNumeric) -> Self::Output {
+        self.checked_div(&rhs).unwrap()
+    }
+}
+
+impl Div<&UnsignedNumeric> for &UnsignedNumeric {
+    type Output = UnsignedNumeric;
+
+    fn div(self, rhs: &UnsignedNumeric) -> Self::Output {
+        self.checked_div(rhs).unwrap()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -519,5 +649,63 @@ mod tests {
         // This simulates rounding correction inside `checked_div`
         let corrected = a.value.checked_add(UnsignedNumeric::rounding_correction());
         assert!(corrected.is_none(), "Expected overflow in rounding correction");
+    }
+
+    #[test]
+    fn test_arithmetic_operators() {
+        let a = UnsignedNumeric::new(5);
+        let b = UnsignedNumeric::new(3);
+        
+        // Test addition
+        let sum = a.clone() + b.clone();
+        assert_eq!(sum.to_imprecise().unwrap(), 8);
+        
+        // Test subtraction
+        let diff = a.clone() - b.clone();
+        assert_eq!(diff.to_imprecise().unwrap(), 2);
+        
+        // Test multiplication
+        let product = a.clone() * b.clone();
+        assert_eq!(product.to_imprecise().unwrap(), 15);
+        
+        // Test division
+        let quotient = a / b;
+        assert!(quotient.almost_eq(&UnsignedNumeric::from_scaled_u128(1_666_666_666_666_666_666), InnerUint::from(1_000_000)));
+    }
+
+    #[test]
+    fn test_arithmetic_operators_with_references() {
+        let a = UnsignedNumeric::new(10);
+        let b = UnsignedNumeric::new(4);
+        
+        // Test with references
+        let sum = &a + &b;
+        assert_eq!(sum.to_imprecise().unwrap(), 14);
+        
+        let diff = &a - &b;
+        assert_eq!(diff.to_imprecise().unwrap(), 6);
+        
+        let product = &a * &b;
+        assert_eq!(product.to_imprecise().unwrap(), 40);
+        
+        let quotient = &a / &b;
+        assert_eq!(quotient.to_imprecise().unwrap(), 3);
+    }
+
+    #[test]
+    fn test_arithmetic_operators_mixed_references() {
+        let a = UnsignedNumeric::new(6);
+        let b = UnsignedNumeric::new(2);
+        
+        // Test mixed reference patterns
+        let sum1 = a.clone() + &b;
+        let sum2 = &a + b.clone();
+        assert_eq!(sum1.to_imprecise().unwrap(), 8);
+        assert_eq!(sum2.to_imprecise().unwrap(), 8);
+        
+        let product1 = a.clone() * &b;
+        let product2 = &a * b.clone();
+        assert_eq!(product1.to_imprecise().unwrap(), 12);
+        assert_eq!(product2.to_imprecise().unwrap(), 12);
     }
 }
