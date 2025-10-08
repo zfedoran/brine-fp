@@ -6,6 +6,9 @@
 #![allow(clippy::manual_range_contains)]
 #![allow(clippy::reversed_empty_ranges)]
 
+#[cfg(not(feature = "std"))]
+extern crate alloc;
+
 use uint::construct_uint;
 
 construct_uint! {
