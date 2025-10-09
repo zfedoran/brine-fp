@@ -1,6 +1,9 @@
 use super::unsigned::UnsignedNumeric;
 use core::ops::{Add, Sub, Mul, Div};
 
+#[cfg(not(feature = "std"))]
+use alloc::{format, string::String};
+
 // Based on the following implementations:
 // https://github.com/solana-labs/solana-program-library/blob/v2.0/libraries/math/src/precise_number.rs
 // https://github.com/StrataFoundation/strata/blob/master/programs/spl-token-bonding/src/signed_precise_number.rs
