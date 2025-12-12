@@ -11,6 +11,12 @@ extern crate alloc;
 
 use uint::construct_uint;
 
+#[cfg(feature = "256-bit")]
+construct_uint! {
+    pub struct InnerUint(4);
+}
+
+#[cfg(not(feature = "256-bit"))]
 construct_uint! {
     pub struct InnerUint(3);
 }

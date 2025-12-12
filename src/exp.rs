@@ -467,19 +467,39 @@ mod tests {
 
     #[test]
     fn test_frexp_large_value() {
-        let val = UnsignedNumeric {
-            value: InnerUint([0, 0, 1]), // 2^128 scaled fixed-point
-        };
-        let (frac, exp) = val.frexp().unwrap();
-        let recombined = frexp_recombine(frac.clone(), exp);
+        #[cfg(not(feature = "256-bit"))]
+        {
+            let val = UnsignedNumeric {
+                value: InnerUint([0, 0, 1]), // 2^128 scaled fixed-point
+            };
+            let (frac, exp) = val.frexp().unwrap();
+            let recombined = frexp_recombine(frac.clone(), exp);
 
-        assert!(
-            recombined.almost_eq(&val, InnerUint::from(10_000_000_000_u64)),
-            "Expected: {}, Got: {} × 2^{} = {}",
-            val.to_string(),
-            frac.to_string(),
-            exp,
-            recombined.to_string()
-        );
+            assert!(
+                recombined.almost_eq(&val, InnerUint::from(10_000_000_000_u64)),
+                "Expected: {}, Got: {} × 2^{} = {}",
+                val.to_string(),
+                frac.to_string(),
+                exp,
+                recombined.to_string()
+            );
+        }
+        #[cfg(feature = "256-bit")]
+        {
+            let val = UnsignedNumeric {
+                value: InnerUint([0, 0, 1, 0]), // 2^128 scaled fixed-point
+            };
+            let (frac, exp) = val.frexp().unwrap();
+            let recombined = frexp_recombine(frac.clone(), exp);
+
+            assert!(
+                recombined.almost_eq(&val, InnerUint::from(10_000_000_000_u64)),
+                "Expected: {}, Got: {} × 2^{} = {}",
+                val.to_string(),
+                frac.to_string(),
+                exp,
+                recombined.to_string()
+            );
+        }
     }
 }
