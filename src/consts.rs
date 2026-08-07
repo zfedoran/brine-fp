@@ -7,9 +7,11 @@ use super::signed::SignedNumeric;
 /// The representation of the number one as a precise number as 10^18
 pub const ONE: u128 = 1_000_000_000_000_000_000;
 
-pub static ONE_PREC: UnsignedNumeric = UnsignedNumeric { value: one() };
-pub static ZERO_PREC: UnsignedNumeric = UnsignedNumeric { value: zero() };
-pub static TWO_PREC: UnsignedNumeric = UnsignedNumeric { value: two() };
+// Prefer `const` over `static` so Solana/sbpf linkers do not emit unrelocated
+// absolute addresses (which fault inside `UnsignedNumeric::log`).
+pub const ONE_PREC: UnsignedNumeric = UnsignedNumeric { value: one() };
+pub const ZERO_PREC: UnsignedNumeric = UnsignedNumeric { value: zero() };
+pub const TWO_PREC: UnsignedNumeric = UnsignedNumeric { value: two() };
 
 /// Zero value in fixed-point format.
 #[inline]
